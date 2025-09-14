@@ -1,10 +1,10 @@
 const express = require('express');// As in the server.js
 const route = express.Router(); //Allows us use express router in this file
 const services = require('../services/render');//uses the render.js file from services here
-
 const controller = require('../controller/controller');//uses the render.js file from services here
-
-
+//
+const validateDrug = require('../middleware/validateDrug');
+//
 route.get('/', services.home);
 
 
@@ -17,6 +17,12 @@ route.get('/update-drug', services.updateDrug);
 
 
 // API for CRUD operations
+//
+// POST purchase drug
+route.post('/api/drugs', validateDrug, controller.create);
+route.put('/api/drugs/:id', validateDrug, controller.update);
+route.post('/api/drugs/purchase', controller.purchase);
+//
 route.post('/api/drugs', controller.create);
 route.get('/api/drugs', controller.find);
 route.put('/api/drugs/:id', controller.update);

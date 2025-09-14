@@ -1,28 +1,58 @@
-const express = require('express');//we installed express using npm previously and we are indicating that it would be used here
-const app = express(); //this assigns express to the variable "app" - anything else can be used.
-const bodyParser = require('body-parser');//body-parser makes it easier to deal with request content by making it easier to use
-const dotenv = require('dotenv').config();//indicates we would be using .env
-const morgan = require('morgan');//this logs requests so you can easily troubleshoot
-const connectMongo = require('./server/database/connect');//requires connect.js file
-const PORT = process.env.PORT || 3100; //uses either what's in our env or 3100 as our port (you can use any unused port)
+// Load biến môi trường từ .env
+require('dotenv').config(); // phải đặt ở dòng đầu tiên để process.env được load trước khi sử dụng
+
+// Import các package cần thiết
+const express = require('express');
+const bodyParser = require('body-parser'); // parse x-www-form-urlencoded
+const morgan = require('morgan');           // HTTP request logger
+const connectMongo = require('./server/database/connect'); // kết nối MongoDB
+
+const app = express();
+const PORT = process.env.PORT || 3100;     // port từ .env hoặc mặc định 3100
 
 
-app.set('view engine', 'ejs');//Put before app.use, etc. Lets us use EJS for views
-//use body-parser to parse requests
-app.use(bodyParser.urlencoded({extended:true}));
-//indicates which is the folder where static files are served from
-app.use(express.static('assets'));
-//use morgan to log http requests
-app.use(morgan('tiny'));
-
-//connect to Database
-connectMongo(); 
-
-//load the routes
-app.use('/',require('./server/routes/routes'));//Pulls the routes file whenever this is loaded
 
 
-app.listen(PORT, function() {//specifies port to listen on
-	console.log('listening on '+ PORT);
-	console.log(`Welcome to the Drug Monitor App at http://localhost:${PORT}`);
-})
+
+// ---- View Engine ----
+app.set('view engine', 'ejs');             // cho phép sử dụng EJS trong views
+
+// ---- Middleware ----
+app.use(bodyParser.urlencoded({ extended: true })); // parse x-www-form-urlencoded
+app.use(express.json());                            // parse JSON body cho API
+app.use(express.static('assets'));                 // phục vụ static file từ folder assets
+app.use(morgan('tiny'));                           // log http requests
+
+// ---- Connect Database ----
+connectMongo(); // đảm bảo .env đã có MONGO_STR
+
+
+const methodOverride = require('method-override');
+app.use(methodOverride('_method')); // đọc query ?_method=PUT
+
+// ---- Load Routes ----
+app.use('/', require('./server/routes/routes')); // routes web + API
+
+// ---- Global Error Handler ----
+app.use((err, req, res, next) => {
+  console.error("Error stack:", err.stack);
+  const status = err.status || 500;
+
+  if (req.originalUrl.startsWith("/api/")) {
+    return res.status(status).json({
+      error: err.message || "Internal Server Error",
+    });
+  }
+
+  res.status(status).render("error", {
+    message: err.message || "Internal Server Error",
+    status,
+  });
+});
+
+
+// ---- Start Server ----
+app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
+  console.log(`Welcome to the Drug Monitor App at http://localhost:${PORT}`);
+});

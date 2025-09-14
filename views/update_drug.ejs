@@ -10,7 +10,7 @@
   <h2>Edit <%= drug.name %></h2>
 <p>Use the below form to edit <%= drug.name %></p>
  <!-- Update drug form -->
- <form method="POST" id="update_drug">
+<form method="POST" action="/api/drugs/<%= drug._id %>?_method=PUT" id="update_drug">
     <div class="container d-flex flex-column align-items-stretch">
         <div class="row mb-3 form-group justify-content-center">             
             <label for="name" class="col-3 col-form-label">Drug Name</label>
@@ -19,7 +19,7 @@
         </div>
         <div class="row mb-3 form-group justify-content-center">
             <label for="card" class="col-3 col-form-label">Tablets per Card</label>
-            <input type="number" name="card" value="<%= drug.card %>" placeholder="Tablets per Card" min="1" max="500" class="col-xs-8 col-md-4">
+            <input type="number" name="card" value="<%= drug.card %>" placeholder="Tablets per Card" min="1" max="5000" class="col-xs-8 col-md-4">
         </div>
         <div class="row mb-3 form-group justify-content-center">
             <label for="pack" class="col-3 col-form-label">Tablets per Pack</label>
